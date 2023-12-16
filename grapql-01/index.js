@@ -41,6 +41,7 @@ const typeDefs = `#graphql
     desc:String
   }
 
+  #Event
 
   type Event {
      id: ID!,
@@ -55,6 +56,18 @@ const typeDefs = `#graphql
      participants: [Participant!]!
      location: [Location!]!
   }
+
+  input createEventInput{
+    title:String!
+    desc:String
+  }
+
+  input updateEventInput{
+    title:String
+    desc:String
+  }
+
+  #Participant
   
   type Participant {
      id: ID!,
@@ -91,7 +104,10 @@ const typeDefs = `#graphql
     deletedLocation(id:ID,name:String): Location
     deletedAllLocation:allDeleted
 
-
+    createEvent(data:createEventInput): Event
+    updateEvent(id:ID!,data:updateEventInput): Event
+    deletedEvent(id:ID,title:String): Event
+    deletedAllEvent:allDeleted
   }
 
 `;
@@ -120,6 +136,9 @@ const resolvers = {
   },
 
   Mutation: {
+    
+    //** Users *********************
+
     createUser: (parent, { data }) => {
       const user_input = { id: nanoid(), ...data };
       users.push(user_input);
@@ -142,6 +161,7 @@ const resolvers = {
       return { count: length }
     },
 
+    //** Location *********************
     createLocation: (parent, { data }) => {
       const location_input = { id: nanoid(), ...data };
       locations.push(location_input);
@@ -158,9 +178,33 @@ const resolvers = {
       locations.splice(locationIndex, 1)
       return locations[locationIndex]
     },
+
     deletedAllLocation: () => {
       const length = locations.length
       locations.splice(0, length)
+      return { count: length }
+    },
+    
+    //** Event *********************
+    createEvent: (parent, { data }) => {
+      const event_input = { id: nanoid(), ...data };
+      events.push(event_input);
+      return event_input
+    },
+    updateEvent: (parent, { id, data }) => {
+      const eventIndex = events.findIndex(event => event.id == id)
+      eventIndex === -1 && new Error("Not Found")
+      return events[eventIndex] = { ...events[eventIndex], ...data }
+    },
+    deletedEvent: (parent, { id, title }) => {
+      const eventIndex = events.findIndex(index => index.id == id || index.title == title)
+      eventIndex === -1 && new Error("not found")
+      events.splice(eventIndex, 1)
+      return events[eventIndex]
+    },
+    deletedAllEvent: () => {
+      const length = events.length
+      events.splice(0, length)
       return { count: length }
     }
   }
