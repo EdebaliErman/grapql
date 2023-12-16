@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid';
 
 const typeDefs = `#graphql
 
+  #USER
   type User {
     id: ID!
     username: String!,
@@ -21,7 +22,7 @@ const typeDefs = `#graphql
     email:String!
   }
   
-
+  #Location
   type Location{
     id:ID!,
     name:String!,
@@ -29,6 +30,17 @@ const typeDefs = `#graphql
     lat:Float,
     lng:Float
   }
+
+  input createLocationInput{
+    name:String!
+    desc:String
+  }
+
+  input updateLocationInput{
+    name:String
+    desc:String
+  }
+
 
   type Event {
      id: ID!,
@@ -73,6 +85,13 @@ const typeDefs = `#graphql
     updateUser(id:ID!,data:updateUserInput): User
     deletedUser(id:ID,username:String): User
     deletedAllUser:allDeleted
+
+    createLocation(data:createLocationInput): Location
+    updateLocation(id:ID!,data:updateLocationInput): Location
+    deletedLocation(id:ID,name:String): Location
+    deletedAllLocation:allDeleted
+
+
   }
 
 `;
@@ -110,7 +129,6 @@ const resolvers = {
       const uIndex = users.findIndex(user => user.id == id)
       uIndex === -1 && new Error("Not Found")
       return users[uIndex] = { ...users[uIndex], ...data }
-
     },
     deletedUser: (parent, { id, username }) => {
       const duIndex = users.findIndex(index => index.id == id || index.username == username)
@@ -122,8 +140,29 @@ const resolvers = {
       const length = users.length
       users.splice(0, length)
       return { count: length }
-    }
+    },
 
+    createLocation: (parent, { data }) => {
+      const location_input = { id: nanoid(), ...data };
+      locations.push(location_input);
+      return location_input
+    },
+    updateLocation: (parent, { id, data }) => {
+      const locationIndex = locations.findIndex(location => location.id == id)
+      locationIndex === -1 && new Error("Not Found")
+      return locations[locationIndex] = { ...locations[locationIndex], ...data }
+    },
+    deletedLocation: (parent, { id, name }) => {
+      const locationIndex = locations.findIndex(index => index.id == id || index.name == name)
+      locationIndex === -1 && new Error("not found")
+      locations.splice(locationIndex, 1)
+      return locations[locationIndex]
+    },
+    deletedAllLocation: () => {
+      const length = locations.length
+      locations.splice(0, length)
+      return { count: length }
+    }
   }
 
 };
