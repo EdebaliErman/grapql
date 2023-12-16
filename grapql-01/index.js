@@ -75,6 +75,16 @@ const typeDefs = `#graphql
      event_id: ID!
   }
 
+  input createParticipantInput{
+     user_id: ID!,
+     event_id: ID!
+  }
+
+  input updateParticipantInput{
+    user_id: ID!,
+    event_id: ID!
+  }
+
  type allDeleted {
   count:Int
  }
@@ -108,6 +118,11 @@ const typeDefs = `#graphql
     updateEvent(id:ID!,data:updateEventInput): Event
     deletedEvent(id:ID,title:String): Event
     deletedAllEvent:allDeleted
+
+    createParticipant(data:createParticipantInput): Participant
+    updateParticipant(id:ID!,data:updateParticipantInput): Participant
+    deletedParticipant(id:ID,event_id:ID): Participant
+    deletedAllParticipant:allDeleted
   }
 
 `;
@@ -136,7 +151,7 @@ const resolvers = {
   },
 
   Mutation: {
-    
+
     //** Users *********************
 
     createUser: (parent, { data }) => {
@@ -184,27 +199,58 @@ const resolvers = {
       locations.splice(0, length)
       return { count: length }
     },
-    
+
     //** Event *********************
+
     createEvent: (parent, { data }) => {
       const event_input = { id: nanoid(), ...data };
       events.push(event_input);
       return event_input
     },
+
     updateEvent: (parent, { id, data }) => {
       const eventIndex = events.findIndex(event => event.id == id)
       eventIndex === -1 && new Error("Not Found")
       return events[eventIndex] = { ...events[eventIndex], ...data }
     },
+
     deletedEvent: (parent, { id, title }) => {
       const eventIndex = events.findIndex(index => index.id == id || index.title == title)
       eventIndex === -1 && new Error("not found")
       events.splice(eventIndex, 1)
       return events[eventIndex]
     },
+
     deletedAllEvent: () => {
       const length = events.length
       events.splice(0, length)
+      return { count: length }
+    },
+
+    //** Participant *********************
+
+    createParticipant: (parent, { data }) => {
+      const participant_input = { id: nanoid(), ...data };
+      participants.push(participant_input);
+      return participant_input
+    },
+
+    updateParticipant: (parent, { id, data }) => {
+      const participantIndex = participants.findIndex(participant => participant.id == id)
+      participantIndex === -1 && new Error("Not Found")
+      return participants[participantIndex] = { ...participants[participantIndex], ...data }
+    },
+
+    deletedParticipant: (parent, { id, user_id }) => {
+      const participantIndex = participants.findIndex(index => index.id == id || index.user_id == user_id)
+      participantIndex === -1 && new Error("not found")
+      participants.splice(participantIndex, 1)
+      return participants[participantIndex]
+    },
+
+    deletedAllParticipant: () => {
+      const length = participants.length
+      participants.splice(0, length)
       return { count: length }
     }
   }
